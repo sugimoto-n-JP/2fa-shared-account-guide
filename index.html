@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>共有アカウント向け設定ガイド</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+/* Layout: Dr.JOY の2段階認証 誘導画面に合わせる。ヘッダーなし。白いカード1枚（見出し → 期限の注意 → 状況から選ぶ → 3つの方法 → お問い合わせ）。
+   Dr.JOY の画面と同じく明るい配色のみ（意図的に1テーマ）。 */
+:root {
+  --orange: #E8901C;
+  --navy: #1F4480;
+  --link: #2F5FA8;
+  --bg: #F5F6F8;
+  --card: #FFFFFF;
+  --line: #E3E5E8;
+  --line-strong: #D5D8DC;
+  --fg: #333333;
+  --fg-sub: #444444;
+  --muted: #5F6670;
+  --warn-bg: #FFF8E6;
+  --warn-line: #EFC46B;
+  --warn-fg: #6B4600;
+  --info-bg: #F3F6FB;
+  --info-line: #C9D6EC;
+  --ill-bg: #FFF4E5;
+  --circle-bg: #EEF0F2;
+  --font: "Noto Sans JP", sans-serif;
+  color-scheme: light;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font); font-size: 14px; line-height: 1.8; }
+a { color: var(--link); }
+a:hover { color: var(--navy); }
+p { margin: 0; }
+h1, h2, h3 { margin: 0; }
+
+/* カード */
+main {
+  padding-block: 40px 56px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.card {
+  max-width: 920px; margin: 0 auto; background: var(--card); border: 1px solid var(--line); border-radius: 6px;
+  padding: 40px 36px 36px; display: flex; flex-direction: column; align-items: center; gap: 28px;
+}
+@media (max-width: 560px) { .card { padding: 28px 16px 24px; } }
+.icon-circle { width: 56px; height: 56px; border-radius: 28px; background: var(--circle-bg); display: flex; align-items: center; justify-content: center; }
+.title { display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center; }
+.title h1 { font-size: clamp(21px, 5.2vw, 26px); font-weight: 500; line-height: 1.5; text-wrap: balance; }
+.title p { font-size: 15px; line-height: 1.8; color: var(--fg-sub); max-width: 640px; }
+
+.warn { width: 100%; background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 6px; padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+.warn p { font-size: 14px; line-height: 1.6; color: var(--warn-fg); }
+.warn svg { flex: 0 0 auto; }
+
+/* 状況から選ぶ */
+.pick { width: 100%; background: var(--info-bg); border: 1px solid var(--info-line); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 12px; }
+.pick h2 { font-size: 15px; color: var(--navy); }
+.pick-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px; }
+.pick-item {
+  display: flex; flex-direction: column; gap: 4px; min-width: 0;
+  background: #fff; border: 1px solid var(--line-strong); border-radius: 6px; padding: 12px 14px; text-decoration: none; color: var(--fg);
+}
+.pick-item:hover { border-color: var(--navy); }
+.pick-item:focus-visible { outline: 3px solid var(--info-line); outline-offset: 1px; border-color: var(--navy); }
+.pick-item .q { font-size: 12.5px; color: var(--muted); line-height: 1.6; }
+.pick-item .a { font-size: 14px; font-weight: 700; color: var(--navy); line-height: 1.5; }
+.pick-item .go { font-size: 12.5px; color: var(--link); }
+
+/* 各方法 */
+.method { width: 100%; border: 1px solid var(--line-strong); border-radius: 6px; scroll-margin-top: 16px; overflow: hidden; }
+.method-head { display: flex; gap: 12px; padding: 18px 20px 6px; align-items: flex-start; }
+.num { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 13px; background: var(--navy); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; margin-top: 1px; }
+.method-head h2 { font-size: 17px; font-weight: 700; line-height: 1.5; }
+.method-head p { font-size: 13px; color: var(--fg-sub); line-height: 1.7; margin-top: 2px; }
+.ill { margin: 10px 20px 0; background: var(--ill-bg); border-radius: 6px; padding: 12px; display: flex; justify-content: center; }
+.ill svg { width: 100%; max-width: 440px; height: auto; display: block; }
+.method-body { padding: 16px 20px 20px; display: flex; flex-direction: column; gap: 14px; }
+.method-body h3 { font-size: 15px; font-weight: 700; padding-top: 12px; border-top: 1px solid var(--line); }
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.steps li { display: flex; gap: 12px; align-items: flex-start; font-size: 13.5px; line-height: 1.7; color: var(--fg); }
+.steps .n { flex: 0 0 auto; width: 26px; height: 26px; border-radius: 13px; background: var(--navy); color: #fff; font-size: 13px; font-weight: 700; display: flex; align-items: center; justify-content: center; }
+.steps .t { min-width: 0; padding-top: 2px; }
+.note { background: var(--warn-bg); border: 1px solid var(--warn-line); border-radius: 6px; padding: 10px 14px; font-size: 13px; line-height: 1.7; color: var(--warn-fg); }
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; align-self: flex-start; min-height: 44px; padding: 0 22px;
+  background: var(--navy); color: #fff; border-radius: 4px; font-size: 15px; font-weight: 500; text-decoration: none;
+}
+.btn:hover { color: #fff; filter: brightness(1.15); }
+.btn:focus-visible { outline: 3px solid var(--info-line); outline-offset: 2px; }
+.hint { font-size: 12.5px; color: var(--muted); }
+
+.help { width: 100%; border: 1px solid var(--info-line); background: var(--info-bg); border-radius: 6px; padding: 16px; display: flex; flex-direction: column; gap: 6px; }
+.help h2 { font-size: 15px; color: var(--navy); }
+.help .mail { font-size: 15px; font-weight: 700; user-select: all; }
+.help small { color: var(--muted); font-size: 12px; }
+
+/* 図 */
+svg .st { stroke: #333; stroke-width: 2; fill: #fff; stroke-linejoin: round; stroke-linecap: round; }
+svg .ln { stroke: #333; stroke-width: 2; fill: none; stroke-linecap: round; }
+svg .hl { stroke: #1F4480; stroke-width: 2.5; fill: #E3EBF7; stroke-linejoin: round; }
+svg .hl-ln { stroke: #1F4480; stroke-width: 2.5; fill: none; stroke-linecap: round; stroke-linejoin: round; }
+svg .tx { fill: #333; font-family: var(--font); font-size: 13px; }
+svg .tx-b { fill: #1F4480; font-family: var(--font); font-size: 22px; font-weight: 700; letter-spacing: .12em; }
+svg .tx-s { fill: #5F6670; font-family: var(--font); font-size: 11.5px; }
+@media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
+</style>
+
+</head>
+<body>
+<main>
+  <div class="card">
+    <div class="icon-circle" aria-hidden="true">
+      <svg width="28" height="28" viewBox="0 0 28 28" fill="none" stroke="#1F4480" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 3l9 3.5v6.5c0 5.5-3.8 9.6-9 11.5-5.2-1.9-9-6-9-11.5V6.5z"/><path d="M10 13.5l3 3 5-6"/></svg>
+    </div>
+
+    <div class="title">
+      <h1>アカウントを共有してご利用中の方へ</h1>
+      <p>1つのアカウントを複数人で使っている場合は、ご自身のスマートフォンで認証コードを受け取る方法が使えません。ご利用の状況に合わせて、次の3つから<strong>1つ</strong>を選んで設定してください。</p>
+    </div>
+
+    <div class="warn">
+      <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="#B5650A" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11 3L21 19H1z"/><path d="M11 9v4.5M11 16v.5"/></svg>
+      <p><strong>2027年1月12日（火）</strong>以降は、2段階認証を設定しないとログインできなくなります。</p>
+    </div>
+
+    <nav class="pick" aria-label="ご利用状況から選ぶ">
+      <h2>ご利用の状況から選べます</h2>
+      <div class="pick-list">
+        <a class="pick-item" href="#chrome">
+          <span class="q">使うパソコンが1台に決まっている</span>
+          <span class="a">Chrome の拡張機能（認証アプリ）</span>
+          <span class="go">設定方法を見る →</span>
+        </a>
+        <a class="pick-item" href="#mail">
+          <span class="q">全員が見られるメールアドレスを用意できる</span>
+          <span class="a">メール認証</span>
+          <span class="go">設定方法を見る →</span>
+        </a>
+        <a class="pick-item" href="#cert">
+          <span class="q">使う端末が決まっている</span>
+          <span class="a">クライアント証明書</span>
+          <span class="go">設定方法を見る →</span>
+        </a>
+      </div>
+    </nav>
+
+    <!-- 方法1 Chrome拡張 -->
+    <section class="method" id="chrome" aria-labelledby="h-chrome">
+      <div class="method-head">
+        <span class="num">1</span>
+        <div>
+          <h2 id="h-chrome">Chrome の拡張機能（認証アプリ）</h2>
+          <p>使うパソコンが1台に決まっている場合に向いています。コードの確認も入力も、そのパソコンの中で済みます。</p>
+        </div>
+      </div>
+      <div class="ill">
+        <svg viewBox="0 0 360 200" role="img" aria-label="パソコンの中で、Chrome の拡張機能に表示された6桁の数字を、ログイン画面に入力するイメージ">
+          <rect class="st" x="30" y="14" width="300" height="158" rx="10"/>
+          <path class="st" d="M10 180h340l-14 10H24z"/>
+          <path class="ln" d="M30 40h300"/>
+          <circle cx="46" cy="27" r="3.5" fill="#333"/><circle cx="60" cy="27" r="3.5" fill="#333"/><circle cx="74" cy="27" r="3.5" fill="#333"/>
+          <rect class="hl" x="296" y="20" width="22" height="16" rx="4"/>
+          <path class="hl-ln" d="M303 28h8M307 24v8"/>
+          <rect class="hl" x="204" y="46" width="118" height="70" rx="8"/>
+          <text class="tx-s" x="263" y="64" text-anchor="middle">認証コード</text>
+          <text class="tx-b" x="263" y="92" text-anchor="middle">482 913</text>
+          <rect x="222" y="102" width="82" height="4" rx="2" fill="#D5D8DC"/><rect x="222" y="102" width="54" height="4" rx="2" fill="#E8901C"/>
+          <rect class="st" x="52" y="66" width="120" height="84" rx="8"/>
+          <text class="tx" x="64" y="86">確認コード</text>
+          <rect class="st" x="64" y="94" width="96" height="22" rx="4"/>
+          <text class="tx-s" x="72" y="109">4 8 2 9 1 3</text>
+          <rect x="64" y="124" width="96" height="18" rx="4" fill="#1F4480"/>
+          <text x="112" y="137" text-anchor="middle" fill="#fff" style="font-family:var(--font);font-size:11px">認証する</text>
+          <path class="hl-ln" d="M200 84H182"/><path class="hl-ln" d="M188 78l-7 6 7 6"/>
+        </svg>
+      </div>
+      <div class="method-body">
+        <h3>手順</h3>
+        <ol class="steps">
+          <li><span class="n">1</span><span class="t">パソコンの Chrome に、認証用の拡張機能を追加します。</span></li>
+          <li><span class="n">2</span><span class="t">Dr.JOY の設定画面で、拡張機能を使った認証を登録します。</span></li>
+          <li><span class="n">3</span><span class="t">次回から、ログインするたびに、拡張機能に表示される6桁の数字を入力します。</span></li>
+        </ol>
+        <p class="note">拡張機能を入れたパソコンの Chrome でログインしてください。別のパソコンやスマートフォンでは、コードを確認できません。</p>
+        <a class="btn" href="https://teachme.jp/7884/manuals/51503331" target="_blank" rel="noopener">設定方法を見る（Teachme）</a>
+      </div>
+    </section>
+
+    <!-- 方法2 メール -->
+    <section class="method" id="mail" aria-labelledby="h-mail">
+      <div class="method-head">
+        <span class="num">2</span>
+        <div>
+          <h2 id="h-mail">メール認証</h2>
+          <p>全員が見られるメールアドレス（共有のメールボックス）を用意できる場合に向いています。端末は問いません。</p>
+        </div>
+      </div>
+      <div class="ill">
+        <svg viewBox="0 0 360 200" role="img" aria-label="共有のメールアドレスに届いた確認コードを、メンバーの誰でも見て、ログイン画面に入力できるイメージ">
+          <rect class="st" x="14" y="46" width="112" height="108" rx="8"/>
+          <text class="tx" x="26" y="68">ログイン</text>
+          <rect class="st" x="26" y="76" width="88" height="20" rx="4"/>
+          <text class="tx-s" x="34" y="90">ID・パスワード</text>
+          <rect class="hl" x="26" y="106" width="88" height="20" rx="4"/>
+          <text class="tx-s" x="70" y="120" text-anchor="middle">確認コード</text>
+          <text class="tx-s" x="70" y="144" text-anchor="middle">メールに届きます</text>
+          <path class="hl-ln" d="M130 100h38"/><path class="hl-ln" d="M160 93l8 7-8 7"/>
+          <rect class="hl" x="172" y="62" width="96" height="66" rx="8"/>
+          <path class="hl-ln" d="M172 70l48 36 48-36"/>
+          <text class="tx-b" x="220" y="152" text-anchor="middle" style="font-size:18px">482 913</text>
+          <text class="tx-s" x="220" y="52" text-anchor="middle">共有のメールアドレス</text>
+          <circle class="st" cx="312" cy="70" r="12"/><path class="st" d="M292 108a20 18 0 0 1 40 0z"/>
+          <circle class="st" cx="334" cy="92" r="9" opacity=".7"/><path class="st" d="M319 124a15 14 0 0 1 30 0z" opacity=".7"/>
+          <path class="ln" d="M272 100h14" stroke-dasharray="3 4"/>
+          <text class="tx-s" x="318" y="146" text-anchor="middle">メンバー全員</text>
+        </svg>
+      </div>
+      <div class="method-body">
+        <h3>手順</h3>
+        <ol class="steps">
+          <li><span class="n">1</span><span class="t">メンバー全員が見られるメールアドレスを用意します。</span></li>
+          <li><span class="n">2</span><span class="t">Dr.JOY の設定画面で、そのメールアドレスを通知先に登録します。</span></li>
+          <li><span class="n">3</span><span class="t">次回から、ログインするたびに、そのメールアドレスに届く6桁の確認コードを入力します。</span></li>
+        </ol>
+        <p class="note">確認コードは、そのメールアドレスを見られる人なら、誰でも確認できます。社外の人が見られるアドレスは、避けてください。</p>
+        <a class="btn" href="https://teachme.jp/7884/manuals/51068698" target="_blank" rel="noopener">設定方法を見る（Teachme）</a>
+        <p class="hint">メール認証の手順は、マニュアルの後半（STEP 9〜11）にあります。</p>
+      </div>
+    </section>
+
+    <!-- 方法3 クライアント証明書 -->
+    <section class="method" id="cert" aria-labelledby="h-cert">
+      <div class="method-head">
+        <span class="num">3</span>
+        <div>
+          <h2 id="h-cert">クライアント証明書</h2>
+          <p>使う端末が決まっている場合に向いています。証明書を入れた端末だけがログインできます。</p>
+        </div>
+      </div>
+      <div class="ill">
+        <svg viewBox="0 0 360 200" role="img" aria-label="証明書を入れた端末からはログインでき、入れていない端末からはログインできないイメージ">
+          <rect class="hl" x="24" y="40" width="130" height="86" rx="8"/>
+          <path class="st" d="M10 134h158l-8 10H18z"/>
+          <circle class="st" cx="89" cy="78" r="18"/>
+          <path class="hl-ln" d="M80 78l7 7 12-14"/>
+          <path class="st" d="M80 94l-5 18 14-7 14 7-5-18"/>
+          <text class="tx" x="89" y="166" text-anchor="middle">証明書あり</text>
+          <text class="tx-s" x="89" y="184" text-anchor="middle">ログインできます</text>
+          <rect class="st" x="206" y="40" width="130" height="86" rx="8" stroke-dasharray="5 5"/>
+          <path class="st" d="M192 134h158l-8 10H200z" stroke-dasharray="5 5"/>
+          <circle class="st" cx="271" cy="83" r="20"/>
+          <path d="M262 74l18 18M280 74l-18 18" fill="none" stroke="#E02424" stroke-width="2.5" stroke-linecap="round"/>
+          <text class="tx" x="271" y="166" text-anchor="middle">証明書なし</text>
+          <text class="tx-s" x="271" y="184" text-anchor="middle">ログインできません</text>
+        </svg>
+      </div>
+      <div class="method-body">
+        <h3>手順</h3>
+        <ol class="steps">
+          <li><span class="n">1</span><span class="t">事業所で、クライアント証明書の利用を申請します。</span></li>
+          <li><span class="n">2</span><span class="t">承認後、決まった端末に証明書をインストールします。</span></li>
+          <li><span class="n">3</span><span class="t">次回から、証明書を入れた端末だけで、ログインできます。</span></li>
+        </ol>
+        <p class="note">利用には、事業所での申請と承認が必要です。申請の方法は、設定方法のページをご確認ください。</p>
+        <a class="btn" href="https://teachme.jp/7884/manuals/15046036" target="_blank" rel="noopener">設定方法を見る（Teachme）</a>
+      </div>
+    </section>
+
+    <section class="help">
+      <h2>設定方法がわからない場合</h2>
+      <p>下記までご連絡ください。</p>
+      <p class="mail">support@drjoy.jp</p>
+      <small>平日 10:00〜17:00</small>
+    </section>
+  </div>
+</main>
+</body>
+</html>
